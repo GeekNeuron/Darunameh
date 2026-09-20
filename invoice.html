@@ -100,7 +100,6 @@
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
-            flex-wrap: wrap;
         }
 
         .box {
@@ -109,7 +108,8 @@
             padding: 6px 10px;
             font-size: 12px;
             font-weight: 700;
-            flex: 1 1 220px;
+            flex: 1 1 0;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -127,7 +127,9 @@
         .box-item {
             display: flex;
             justify-content: space-between;
-            gap: 6px;
+            align-items: baseline;
+            gap: 4px;
+            min-width: 0;
         }
 
         .box-item span {
@@ -141,6 +143,7 @@
             min-height: 1.2em;
             min-width: 0;
             flex: 1;
+            direction: ltr;
             text-align: left;
             border-bottom: 1px solid transparent;
             overflow-wrap: break-word;
@@ -167,7 +170,8 @@
             background: transparent;
             color: #000;
             outline: none;
-            text-align: center;
+            direction: ltr;
+            text-align: left;
             padding: 0 2px;
         }
         .mini-input:focus, .mini-select:focus {
@@ -313,11 +317,24 @@
 
         @media (max-width: 600px) {
             body { padding: 8px; align-items: flex-start; }
-            .header-title h1 { font-size: 22px; }
-            .banner { font-size: 17px; letter-spacing: 1px; }
-            .box { font-size: 11px; }
-            .total-box { font-size: 15px; padding: 8px 12px; }
-            .fill-line { width: 140px; }
+            .header-title h1 { font-size: 20px; }
+            .banner { font-size: 15px; letter-spacing: 1px; }
+            .box { font-size: 10px; padding: 5px 7px; }
+            .box-title { font-size: 11px; }
+            .total-box { font-size: 13px; padding: 7px 10px; }
+            .fill-line { width: 130px; }
+            .wide-input { width: 90px; }
+            .age-input { width: 28px; }
+            .date-y { width: 34px; }
+            .date-md { width: 22px; }
+            .time-input { width: 40px; }
+            .mini-select { width: 44px; font-size: 10px; }
+            .mini-input, .mini-select { font-size: 10px; }
+            .items-table { min-width: 0; }
+            .items-table th, .items-table td { padding: 5px 3px; font-size: 10px; }
+            .items-table th { font-size: 10px; }
+            .items-table td { height: 30px; }
+            .items-table td .mini-input { font-size: 10px; }
         }
 
         @media print {
@@ -327,6 +344,12 @@
             .table-scroll { overflow: visible; }
             .box-item strong[contenteditable]:empty::before { content: ""; }
             .fill-line:empty::before { content: ""; }
+            input, select, [contenteditable] {
+                background: transparent !important;
+            }
+            input::placeholder { color: transparent !important; }
+            input, select { -webkit-appearance: none; appearance: none; }
+            ::selection { background: transparent !important; }
         }
     </style>
 </head>
@@ -349,8 +372,8 @@
                 <div class="box-title">مشخصات بیمار</div>
                 <div class="box-item"><span>نام بیمار :</span> <strong contenteditable="true" data-placeholder="............."></strong></div>
                 <div class="box-item age-row"><span>سن بیمار :</span> <span class="age-wrap"><input type="text" inputmode="numeric" maxlength="3" id="patient-age" class="mini-input age-input" placeholder="..."><span class="unit-suffix">سال</span></span></div>
-                <div class="box-item"><span>کد ملی :</span> <input type="text" inputmode="numeric" maxlength="10" id="national-id" class="mini-input wide-input" placeholder="کد ملی ۱۰ رقمی"></div>
-                <div class="box-item"><span>شماره تماس :</span> <input type="text" inputmode="numeric" maxlength="11" id="phone-number" class="mini-input wide-input" placeholder="شماره تماس ۱۱ رقمی"></div>
+                <div class="box-item"><span>کد ملی :</span> <input type="text" inputmode="numeric" maxlength="10" id="national-id" class="mini-input wide-input" placeholder="..........."></div>
+                <div class="box-item"><span>شماره تماس :</span> <input type="text" inputmode="numeric" maxlength="11" id="phone-number" class="mini-input wide-input" placeholder="..........."></div>
             </div>
 
             <div class="box">

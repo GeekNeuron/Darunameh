@@ -49,16 +49,24 @@
     var nameCell = editableName
       ? '<td class="drug-name-cell" contenteditable="true"></td>'
       : '<td class="drug-name-cell">' + escapeHtml(name) + '</td>';
-    var qty = hasDrug ? "۱" : "";
-    var price = hasDrug ? "۰" : "";
-    var total = hasDrug ? "۰" : "";
+    if (hasDrug) {
+      return (
+        '<tr>' +
+        '<td class="row-num"></td>' +
+        nameCell +
+        '<td class="qty-cell"><input type="text" inputmode="numeric" class="mini-input qty-input" value="۱"></td>' +
+        '<td class="price-cell"><input type="text" inputmode="numeric" class="mini-input price-input" value="۰"></td>' +
+        '<td class="row-total-cell">۰</td>' +
+        '</tr>'
+      );
+    }
     return (
       '<tr>' +
       '<td class="row-num"></td>' +
       nameCell +
-      '<td><input type="text" inputmode="numeric" class="mini-input qty-input" value="' + qty + '"></td>' +
-      '<td><input type="text" inputmode="numeric" class="mini-input price-input" value="' + price + '"></td>' +
-      '<td class="row-total-cell">' + total + '</td>' +
+      '<td class="qty-cell"></td>' +
+      '<td class="price-cell"></td>' +
+      '<td class="row-total-cell"></td>' +
       '</tr>'
     );
   }
@@ -127,20 +135,32 @@
     });
   }
 
+  function activateRow(row) {
+    var qtyCell = row.querySelector(".qty-cell");
+    var priceCell = row.querySelector(".price-cell");
+    var totalCell = row.querySelector(".row-total-cell");
+    if (!qtyCell.querySelector(".qty-input")) {
+      qtyCell.innerHTML = '<input type="text" inputmode="numeric" class="mini-input qty-input" value="۱">';
+      priceCell.innerHTML = '<input type="text" inputmode="numeric" class="mini-input price-input" value="۰">';
+      totalCell.textContent = "۰";
+      wireQtyInput(qtyCell.querySelector(".qty-input"), row);
+      wirePriceInput(priceCell.querySelector(".price-input"), row);
+    }
+  }
+
   function wireRow(row) {
     var nameCell = row.querySelector(".drug-name-cell");
     var qtyInput = row.querySelector(".qty-input");
     var priceInput = row.querySelector(".price-input");
 
-    wireQtyInput(qtyInput, row);
-    wirePriceInput(priceInput, row);
+    if (qtyInput) wireQtyInput(qtyInput, row);
+    if (priceInput) wirePriceInput(priceInput, row);
 
     if (nameCell && nameCell.hasAttribute("contenteditable")) {
       nameCell.addEventListener("input", function () {
         var tbody = document.getElementById("items-body");
         if (nameCell.textContent.trim()) {
-          if (!qtyInput.value.trim()) qtyInput.value = "۱";
-          if (!priceInput.value.trim()) priceInput.value = "۰";
+          activateRow(row);
         }
         renumberRows(tbody);
         recalcRow(row);
