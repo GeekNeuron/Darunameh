@@ -337,18 +337,29 @@
             .items-table td .mini-input { font-size: 10px; }
         }
 
+        .mini-input:not(:placeholder-shown),
+        .fill-line:not(:empty),
+        .box-item strong[contenteditable]:not(:empty) {
+            border-bottom-color: transparent;
+        }
+
+        @page { size: A5; margin: 8mm; }
+
         @media print {
-            body { background: #fff; padding: 0; }
-            .invoice-container { box-shadow: none; border: 2px solid #000; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            html, body { background: #fff; }
+            body { padding: 0; min-height: 0; display: block; }
+            .invoice-container { box-shadow: none; border: 2px solid #000; max-width: none; padding: 8px; }
             .toolbar { display: none; }
             .table-scroll { overflow: visible; }
+            .items-table { min-width: 0; }
             .box-item strong[contenteditable]:empty::before { content: ""; }
             .fill-line:empty::before { content: ""; }
-            input, select, [contenteditable] {
-                background: transparent !important;
-            }
+            .fill-line, .mini-input, .mini-select, .box-item strong { border-bottom-color: transparent !important; }
+            input, select, [contenteditable] { background: transparent !important; }
             input::placeholder { color: transparent !important; }
             input, select { -webkit-appearance: none; appearance: none; }
+            .mini-input.invalid { color: #000; background: transparent !important; }
             ::selection { background: transparent !important; }
         }
     </style>

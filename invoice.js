@@ -224,13 +224,30 @@
     });
   }
 
+  function currentJalali() {
+    try {
+      var parts = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", { year: "numeric", month: "numeric", day: "numeric" }).formatToParts(new Date());
+      var out = {};
+      parts.forEach(function (p) { if (p.type === "year" || p.type === "month" || p.type === "day") out[p.type] = parseInt(p.value, 10); });
+      if (out.year && out.month && out.day) return out;
+    } catch (e) {}
+    return null;
+  }
+
   function wireDateInputs() {
     var year = document.getElementById("date-year");
     var month = document.getElementById("date-month");
     var day = document.getElementById("date-day");
+    var j = currentJalali();
+    if (j && year && month && day) {
+      year.value = toPersianDigits(j.year);
+      month.value = toPersianDigits(j.month < 10 ? "0" + j.month : j.month);
+      day.value = toPersianDigits(j.day < 10 ? "0" + j.day : j.day);
+    }
     [[year, 4], [month, 2], [day, 2]].forEach(function (pair) {
       var input = pair[0], max = pair[1];
       if (!input) return;
+      selectOnFocus(input);
       input.addEventListener("input", function () {
         var digits = digitsOnly(input.value).slice(0, max);
         input.value = digits ? toPersianDigits(digits) : "";

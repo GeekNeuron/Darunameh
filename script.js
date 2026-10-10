@@ -333,24 +333,15 @@
     const body = document.createElement("button");
     body.type = "button";
     body.className = "drug-card-body";
-    const subParts = [d.form_fa, d.route_fa];
-    if (d.atc_fa && d.atc_fa.group_fa) subParts.push(d.atc_fa.group_fa);
-    const sub = subParts.filter(Boolean).join(" · ");
     const hasFa = d.fa && d.fa.name;
-    const hasIntl = !hasFa && d.intl;
-    const hasClassOnly = !hasFa && !hasIntl && d.pharm_class;
-    const hasInteraction = findDrugInteractions(d).items.some((it) => it.l === "M");
+    const strength = d.strength ? ` <span class="en strength">${escapeHtml(d.strength)}</span>` : "";
     const titleHtml = hasFa
       ? `${escapeHtml(d.fa.name)} <span class="en">${escapeHtml(d.name_en)}</span>`
       : `<span class="en">${escapeHtml(d.name_en)}</span>`;
-    const tag = hasFa
-      ? ' <span class="fa-tag">شرح فارسی موجود</span>'
-      : (hasIntl ? ' <span class="fa-tag" style="color:var(--text-muted)">خلاصه انگلیسی موجود</span>'
-      : (hasClassOnly ? ` <span class="fa-tag" style="color:var(--text-muted)">${escapeHtml(d.pharm_class.fa || d.pharm_class.en)}</span>` : ""));
     body.innerHTML = `
       <div class="drug-card-main">
-        <p class="drug-card-name">${titleHtml} ${d.strength ? `<span class="en" style="opacity:.7">${escapeHtml(d.strength)}</span>` : ""}</p>
-        <p class="drug-card-sub">${escapeHtml(sub)}${tag}${hasInteraction ? ' <span class="fa-tag" style="color:var(--rx-color)">⚠️ تداخل مهم</span>' : ""}</p>
+        <p class="drug-card-name">${titleHtml}${strength}</p>
+        <p class="drug-card-sub">${escapeHtml(d.form_fa || "")}</p>
       </div>
       <span class="badge ${d.access}">${ACCESS_LABEL[d.access] || "—"}</span>
     `;
@@ -384,111 +375,104 @@
     const accessNote = d.access === "hospital"
       ? "این دارو صرفاً در بیمارستان تجویز و مصرف می‌شود."
       : d.access === "otc"
-        ? "این دارو بدون نیاز به نسخه پزشک قابل تهیه است؛ با این حال مصرف خودسرانه توصیه نمی‌شود."
+        ? "بدون نسخه قابل تهیه است؛ با این حال مصرف خودسرانه توصیه نمی‌شود."
         : "این دارو نیازمند نسخه پزشک است.";
 
     const fa = d.fa;
     const intl = d.intl;
-    const faBlock = fa ? `
-      <div class="modal-section" style="background:var(--surface-alt);border-radius:10px;padding:.8rem .9rem;">
-        <h3>${fa.name ? escapeHtml(fa.name) : "شرح فارسی"} ${fa.generic ? `<span style="color:var(--text-muted);font-weight:500">(${escapeHtml(fa.generic)})</span>` : ""}</h3>
-        ${fa.category ? `<p style="margin-bottom:.4rem"><strong>دسته:</strong> ${escapeHtml(fa.category)}</p>` : ""}
-        ${fa.uses ? `<p style="margin-bottom:.4rem"><strong>موارد مصرف:</strong> ${escapeHtml(fa.uses)}</p>` : ""}
-        ${fa.side_effects ? `<p style="margin-bottom:.4rem"><strong>عوارض شایع:</strong> ${escapeHtml(fa.side_effects)}</p>` : ""}
-        ${fa.warnings ? `<p><strong>هشدار:</strong> ${escapeHtml(fa.warnings)}</p>` : ""}
-        ${fa.partial ? `<p style="margin-top:.5rem;font-size:.74rem;color:var(--text-muted)">⚠️ این دارو ترکیبی چند جزئی است؛ شرح بالا فقط مربوط به یکی از اجزای فعال آن است، نه کل فرآورده.</p>` : ""}
-      </div>` : "";
-
-    const intlBlock = intl ? `
-      <div class="modal-section" style="background:var(--surface-alt);border-radius:10px;padding:.8rem .9rem;direction:ltr;text-align:left;unicode-bidi:isolate;">
-        <h3 style="direction:rtl;text-align:right">خلاصه بین‌المللی (انگلیسی) — ${escapeHtml(intl.ingredient)}</h3>
-        <p style="margin-bottom:.4rem">${escapeHtml(intl.uses_en)}</p>
-        ${intl.warnings_en ? `<p><strong>Warning:</strong> ${escapeHtml(intl.warnings_en)}</p>` : ""}
-        <p style="margin-top:.5rem;font-size:.72rem;color:var(--text-muted);direction:rtl;text-align:right">
-          منبع: دیتاست متن‌باز eg-drugs (مصر) — بر اساس ماده مؤثره، نه محصول ایرانی خاص.
-          ${intl.partial ? " ⚠️ این دارو ترکیبی است؛ متن فقط مربوط به یک جزء فعال آن است." : ""}
-        </p>
-      </div>` : "";
-
     const pc = d.pharm_class;
-    const pharmClassBlock = pc ? `
-      <div class="modal-section">
-        <h3>کلاس دارویی (FDA)</h3>
-        <p>${pc.fa ? escapeHtml(pc.fa) : escapeHtml(pc.en)}${pc.fa ? ` <span style="color:var(--text-muted);font-size:.82rem">(${escapeHtml(pc.en)})</span>` : ""}${pc.partial ? ' <span style="font-size:.72rem;color:var(--text-muted)">(برای یکی از اجزای ترکیب)</span>' : ""}</p>
+    const ic = d.intl_combo;
+
+    const faRows = fa ? [
+      fa.category ? `<p><strong>دسته:</strong> ${escapeHtml(fa.category)}</p>` : "",
+      fa.uses ? `<p><strong>موارد مصرف:</strong> ${escapeHtml(fa.uses)}</p>` : "",
+      fa.side_effects ? `<p><strong>عوارض شایع:</strong> ${escapeHtml(fa.side_effects)}</p>` : "",
+      fa.warnings ? `<p><strong>هشدار:</strong> ${escapeHtml(fa.warnings)}</p>` : ""
+    ].join("") : "";
+    const faBlock = fa && faRows ? `
+      <div class="modal-box">
+        ${faRows}
+        ${fa.partial ? `<p class="modal-small">این دارو ترکیبی چندجزئی است؛ شرح بالا فقط مربوط به یکی از اجزای فعال آن است.</p>` : ""}
       </div>` : "";
 
-    const ic = d.intl_combo;
-    const comboBlock = ic ? `
-      <div class="modal-section" style="background:var(--surface-alt);border-radius:10px;padding:.8rem .9rem;direction:ltr;text-align:left;unicode-bidi:isolate;">
-        <h3 style="direction:rtl;text-align:right">خلاصه بین‌المللی — کل ترکیب دارویی</h3>
-        <p style="margin-bottom:.4rem">${escapeHtml(ic.uses_en)}</p>
-        ${ic.warnings_en ? `<p><strong>Warning:</strong> ${escapeHtml(ic.warnings_en)}</p>` : ""}
-        <p style="margin-top:.5rem;font-size:.72rem;color:var(--text-muted);direction:rtl;text-align:right">
-          منبع: eg-drugs — این مورد به‌صورت دستی بازبینی شده و برای کل ترکیب (همه اجزا) صادق است.
-        </p>
-      </div>` : "";
+    function enBlock(title, uses, warn, note) {
+      return `
+      <div class="modal-box modal-en">
+        <h3>${title}</h3>
+        <p>${escapeHtml(uses)}</p>
+        ${warn ? `<p><strong>Warning:</strong> ${escapeHtml(warn)}</p>` : ""}
+        <p class="modal-small modal-rtl">${note}</p>
+      </div>`;
+    }
+    const intlBlock = intl ? enBlock(
+      `خلاصه انگلیسی — ${escapeHtml(intl.ingredient)}`, intl.uses_en, intl.warnings_en,
+      `بر اساس ماده مؤثره، نه محصول ایرانی خاص.${intl.partial ? " این دارو ترکیبی است؛ متن فقط مربوط به یک جزء فعال آن است." : ""}`
+    ) : "";
+    const comboBlock = ic ? enBlock(
+      "خلاصه انگلیسی — کل ترکیب", ic.uses_en, ic.warnings_en,
+      "بازبینی‌شده برای کل ترکیب (همه اجزا)."
+    ) : "";
+
+    const chips = [];
+    if (pc) chips.push(`<span class="modal-chip">${escapeHtml(pc.fa || pc.en)}${pc.partial ? " (یکی از اجزا)" : ""}</span>`);
+    if (d.atc_fa && d.atc_fa.group_fa) chips.push(`<span class="modal-chip alt">${escapeHtml(d.atc_fa.group_fa)}</span>`);
+    if (d.atc_fa && d.atc_fa.subgroup_fa) chips.push(`<span class="modal-chip alt">${escapeHtml(d.atc_fa.subgroup_fa)}</span>`);
+    const chipsBlock = chips.length ? `<div class="modal-chips">${chips.join("")}</div>` : "";
 
     const noDataNote = (!fa && !intl && !pc && !ic);
 
     const interactionData = findDrugInteractions(d);
     const interactionItems = interactionData.items;
     const majorCount = interactionItems.filter((it) => it.l === "M").length;
-    const visibleCount = 10;
     function interactionRow(it) {
-      const badgeColor = it.l === "M" ? "var(--rx-color)" : (it.l === "O" ? "var(--accent-2)" : "var(--text-muted)");
-      const badgeBg = it.l === "M" ? "var(--rx-bg)" : (it.l === "O" ? "var(--accent-2-soft)" : "var(--surface-alt)");
-      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.4rem 0;border-top:1px solid var(--border)">
-        <span style="direction:ltr;unicode-bidi:isolate;text-align:right">${escapeHtml(it.p)}</span>
-        <span style="flex:none;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;background:${badgeBg};color:${badgeColor}">${SEVERITY_FA[it.l] || it.l}</span>
-      </div>`;
+      return `<div class="ix-row"><span class="ix-name">${escapeHtml(it.p)}</span><span class="ix-sev ix-${it.l}">${SEVERITY_FA[it.l] || it.l}</span></div>`;
     }
     const interactionsBlock = interactionItems.length ? `
-      <div class="modal-section warning">
-        <h3>⚠️ تداخل دارویی (${toPersianDigits(interactionData.total)} مورد ثبت‌شده، ${toPersianDigits(majorCount)} مورد شدید)</h3>
-        <div>${interactionItems.slice(0, visibleCount).map(interactionRow).join("")}</div>
-        ${interactionItems.length > visibleCount ? `
-          <details style="margin-top:.3rem">
-            <summary style="cursor:pointer;font-size:.78rem;color:var(--rx-color)">نمایش ${toPersianDigits(interactionItems.length - visibleCount)} مورد دیگر</summary>
-            <div>${interactionItems.slice(visibleCount).map(interactionRow).join("")}</div>
-          </details>` : ""}
-        <p style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem">منبع: DDInter (دیتابیس باز و دارای داوری علمی). پیش از مصرف هم‌زمان چند دارو حتماً با پزشک یا داروساز مشورت کنید.</p>
-      </div>` : "";
+      <details class="modal-details modal-ix">
+        <summary>⚠️ تداخل دارویی · ${toPersianDigits(interactionData.total)} مورد${majorCount ? ` · ${toPersianDigits(majorCount)} شدید` : ""}</summary>
+        <div class="ix-list">${interactionItems.map(interactionRow).join("")}</div>
+        <p class="modal-small">منبع: DDInter. پیش از مصرف هم‌زمان چند دارو با پزشک یا داروساز مشورت کنید.</p>
+      </details>` : "";
+
+    const techRows = [
+      row("ترکیب دارویی", d.molecule_en, true),
+      row("نحوه مصرف", d.route_fa),
+      row("کد ATC", d.atc, true),
+      row("کد فهرست دارویی", d.index_code != null ? String(d.index_code) : "", true),
+      row("تاریخ ورود به فهرست", d.entry_date_j, true)
+    ].join("");
+
+    const title = fa && fa.name ? escapeHtml(fa.name) : escapeHtml(d.name_en);
+    const subtitle = fa && fa.name ? `<span class="modal-en-name">${escapeHtml(d.name_en)}${d.strength ? " · " + escapeHtml(d.strength) : ""}</span>`
+      : (d.strength ? `<span class="modal-en-name">${escapeHtml(d.strength)}</span>` : "");
 
     el.modalContent.innerHTML = `
       <div class="modal-title-row">
-        <h2 id="modal-title" style="direction:ltr;unicode-bidi:isolate;text-align:right">${escapeHtml(d.name_en)}</h2>
-        ${d.strength ? `<span class="modal-en-name">${escapeHtml(d.strength)}</span>` : ""}
+        <h2 id="modal-title"${fa && fa.name ? "" : ' class="ltr"'}>${title}</h2>
+        ${subtitle}
       </div>
       <div class="modal-badges">
         <span class="badge ${d.access}">${ACCESS_LABEL[d.access] || "—"}</span>
-        ${d.form_fa ? `<span class="badge otc" style="background:var(--surface-alt);color:var(--text-muted)">${escapeHtml(d.form_fa)}</span>` : ""}
-        ${d.biologic ? `<span class="badge otc" style="background:var(--accent-2-soft);color:var(--accent-2)">فرآورده بیولوژیک</span>` : ""}
+        ${d.form_fa ? `<span class="badge plain">${escapeHtml(d.form_fa)}</span>` : ""}
+        ${d.biologic ? `<span class="badge hospital">بیولوژیک</span>` : ""}
       </div>
-
+      ${chipsBlock}
       ${faBlock}
       ${intlBlock}
       ${comboBlock}
-      ${pharmClassBlock}
       ${interactionsBlock}
-
-      ${row("ترکیب دارویی (مولکول)", d.molecule_en, true)}
-      ${row("نحوه مصرف", d.route_fa)}
-      ${d.atc_fa ? `<div class="modal-section"><h3>گروه درمانی (ATC)</h3><p>${d.atc_fa.group_fa ? escapeHtml(d.atc_fa.group_fa) : ""}${d.atc_fa.subgroup_fa ? " ← " + escapeHtml(d.atc_fa.subgroup_fa) : ""}</p></div>` : ""}
-      ${row("کد ATC", d.atc, true)}
-      ${row("کد فهرست رسمی دارویی", d.index_code != null ? String(d.index_code) : "", true)}
-      ${row("تاریخ ورود به فهرست (شمسی)", d.entry_date_j, true)}
-
-      <div class="modal-section warning">
-        <h3>نکته</h3>
-        <p>${accessNote} ${noDataNote ? "این رکورد از فهرست رسمی سازمان غذا و دارو (سامانه IRC) استخراج شده و شامل موارد مصرف بالینی، عوارض یا هشدارهای تفصیلی نیست؛ برای این اطلاعات به درج دارو یا داروساز مراجعه کنید." : ""}</p>
-      </div>
-
+      <details class="modal-details modal-tech">
+        <summary>جزئیات فنی</summary>
+        <div class="tech-grid">${techRows}</div>
+      </details>
+      <p class="modal-note">${accessNote}${noDataNote ? " شرح بالینی برای این رکورد در فهرست رسمی موجود نیست؛ به برگه راهنما یا داروساز مراجعه کنید." : ""}</p>
       <div class="modal-footnote">
-        منبع داده ساختاری: فهرست رسمی دارویی ایران — سامانه IRC، سازمان غذا و دارو (irc.fda.gov.ir)${fa ? " · شرح فارسی: دیتابیس تکمیلی داخلی (غیررسمی)" : ""}${(intl || ic) ? " · خلاصه انگلیسی: eg-drugs (متن‌باز)" : ""}${pc ? " · کلاس دارویی: FDA NDC (متن‌باز)" : ""}
+        منبع: فهرست رسمی دارویی ایران (IRC)${fa ? " · شرح فارسی: دیتابیس تکمیلی (غیررسمی)" : ""}${(intl || ic) ? " · خلاصه انگلیسی: eg-drugs" : ""}${pc ? " · کلاس دارویی: FDA" : ""}
       </div>
     `;
     el.modalBackdrop.hidden = false;
     document.body.style.overflow = "hidden";
+    el.modalContent.parentElement.scrollTop = 0;
   }
 
   function closeModal() {
