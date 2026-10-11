@@ -25,16 +25,15 @@
             background-color: #f0f2f5;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
         }
 
         .invoice-container {
-            width: 100%;
-            max-width: 800px;
-            min-width: 0;
+            width: 800px;
+            flex: none;
             background-color: #ffffff;
             border: 2px solid #000;
             padding: 15px;
@@ -71,8 +70,7 @@
         .fill-line {
             display: inline-block;
             width: 220px;
-            max-width: 60vw;
-            border-bottom: 1px solid #999;
+                        border-bottom: 1px solid #999;
             margin-right: 5px;
             vertical-align: middle;
             min-height: 1.2em;
@@ -292,8 +290,8 @@
         }
 
         .toolbar {
-            max-width: 800px;
-            width: 100%;
+            width: 800px;
+            flex: none;
             margin: 0 auto 12px;
             display: flex;
             justify-content: flex-end;
@@ -315,28 +313,6 @@
             color: #fff;
         }
 
-        @media (max-width: 600px) {
-            body { padding: 8px; align-items: flex-start; }
-            .header-title h1 { font-size: 20px; }
-            .banner { font-size: 15px; letter-spacing: 1px; }
-            .box { font-size: 10px; padding: 5px 7px; }
-            .box-title { font-size: 11px; }
-            .total-box { font-size: 13px; padding: 7px 10px; }
-            .fill-line { width: 130px; }
-            .wide-input { width: 90px; }
-            .age-input { width: 28px; }
-            .date-y { width: 34px; }
-            .date-md { width: 22px; }
-            .time-input { width: 40px; }
-            .mini-select { width: 44px; font-size: 10px; }
-            .mini-input, .mini-select { font-size: 10px; }
-            .items-table { min-width: 0; }
-            .items-table th, .items-table td { padding: 5px 3px; font-size: 10px; }
-            .items-table th { font-size: 10px; }
-            .items-table td { height: 30px; }
-            .items-table td .mini-input { font-size: 10px; }
-        }
-
         .mini-input:not(:placeholder-shown),
         .fill-line:not(:empty),
         .box-item strong[contenteditable]:not(:empty) {
@@ -348,11 +324,21 @@
         @media print {
             * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             html, body { background: #fff; }
-            body { padding: 0; min-height: 0; display: block; }
-            .invoice-container { box-shadow: none; border: 2px solid #000; max-width: none; padding: 8px; }
+            body { padding: 0; min-height: 0; display: block; height: auto; }
+            .invoice-container { break-inside: avoid; page-break-inside: avoid; }
+            .invoice-container { box-shadow: none; border: 2px solid #000; width: auto; padding: 8px; }
             .toolbar { display: none; }
             .table-scroll { overflow: visible; }
             .items-table { min-width: 0; }
+            .items-table td { height: 24px; padding: 2px 4px; font-size: 11px; }
+            .items-table th { padding: 4px; font-size: 11px; }
+            .items-table td .mini-input { font-size: 11px; padding: 0 2px; }
+            .banner { font-size: 18px; padding: 5px 0; }
+            .header-title h1 { font-size: 22px; }
+            .bottom-section { padding-top: 8px; margin-top: 4px; }
+            .total-box { font-size: 15px; padding: 6px 14px; }
+            .footer-text { margin-top: 8px; padding-top: 6px; font-size: 11px; }
+            .items-table tr { break-inside: avoid; }
             .box-item strong[contenteditable]:empty::before { content: ""; }
             .fill-line:empty::before { content: ""; }
             .fill-line, .mini-input, .mini-select, .box-item strong { border-bottom-color: transparent !important; }

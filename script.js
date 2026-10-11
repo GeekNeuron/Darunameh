@@ -63,7 +63,7 @@
   const aboutCloseBtn = document.getElementById("about-close-btn");
   aboutBtn.addEventListener("click", () => {
     const countEl = document.getElementById("about-drug-count");
-    countEl.textContent = `${toPersianDigits(DB.length)} داروی رسمی · ${toPersianDigits(DB.filter((d) => d.fa || d.intl || d.pharm_class || d.intl_combo).length)} مورد دارای توضیح تکمیلی`;
+    countEl.textContent = `${toPersianDigits(DB.length)} داروی رسمی · ${toPersianDigits(DB.filter((d) => d.fa && d.fa.name).length)} مورد دارای نام فارسی`;
     aboutDialog.showModal();
   });
   aboutCloseBtn.addEventListener("click", () => aboutDialog.close());
@@ -467,7 +467,7 @@
       </details>
       <p class="modal-note">${accessNote}${noDataNote ? " شرح بالینی برای این رکورد در فهرست رسمی موجود نیست؛ به برگه راهنما یا داروساز مراجعه کنید." : ""}</p>
       <div class="modal-footnote">
-        منبع: فهرست رسمی دارویی ایران (IRC)${fa ? " · شرح فارسی: دیتابیس تکمیلی (غیررسمی)" : ""}${(intl || ic) ? " · خلاصه انگلیسی: eg-drugs" : ""}${pc ? " · کلاس دارویی: FDA" : ""}
+        منبع: فهرست رسمی دارویی ایران (IRC)${fa ? (fa.src ? " · شرح بالینی: خلاصهٔ فارسی از برچسب رسمی FDA (ممکن است همهٔ موارد مصرف این شکل دارویی را پوشش ندهد)" : " · شرح فارسی: دیتابیس تکمیلی (غیررسمی)") : ""}${(intl || ic) ? " · خلاصه انگلیسی: eg-drugs" : ""}${pc ? " · کلاس دارویی: FDA" : ""}
       </div>
     `;
     el.modalBackdrop.hidden = false;

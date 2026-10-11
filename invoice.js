@@ -2,7 +2,7 @@
   "use strict";
 
   var STORAGE_KEY = "pharmacy_invoice_selection";
-  var EXTRA_ROWS = 5;
+  var MIN_ROWS = 10;
 
   var digitMap = { "0": "۰", "1": "۱", "2": "۲", "3": "۳", "4": "۴", "5": "۵", "6": "۶", "7": "۷", "8": "۸", "9": "۹" };
   var reverseDigitMap = { "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4", "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9" };
@@ -162,10 +162,28 @@
         if (nameCell.textContent.trim()) {
           activateRow(row);
         }
+        ensureTrailingBlank(tbody);
         renumberRows(tbody);
         recalcRow(row);
       });
     }
+  }
+
+  function addBlankRow(tbody) {
+    var holder = document.createElement("tbody");
+    holder.innerHTML = buildRow("", false, true);
+    var row = holder.firstChild;
+    tbody.appendChild(row);
+    wireRow(row);
+    return row;
+  }
+
+  function ensureTrailingBlank(tbody) {
+    var rows = tbody.querySelectorAll("tr");
+    if (!rows.length) return;
+    var last = rows[rows.length - 1];
+    var nameCell = last.querySelector(".drug-name-cell");
+    if (nameCell && nameCell.textContent.trim()) addBlankRow(tbody);
   }
 
   function buildItemsTable() {
@@ -177,7 +195,8 @@
       html += buildRow(item.name || "", true, false);
     });
 
-    for (var i = 0; i < EXTRA_ROWS; i++) {
+    var blanks = Math.max(MIN_ROWS - selection.length, 1);
+    for (var i = 0; i < blanks; i++) {
       html += buildRow("", false, true);
     }
 
@@ -286,7 +305,40 @@
     });
   }
 
+  function fitToScreen() {
+    var box = document.getElementById("invoice-container");
+    var tools = document.querySelector(".toolbar");
+    if (!box) return;
+    var avail = document.documentElement.clientWidth - 40;
+    var scale = Math.min(1, avail / 800);
+    box.style.zoom = scale < 1 ? String(scale) : "";
+    if (tools) tools.style.zoom = box.style.zoom;
+  }
+
+  function fitToPage() {
+    var box = document.getElementById("invoice-container");
+    if (!box) return;
+    var probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;width:132mm;height:194mm";
+    document.body.appendChild(probe);
+    var pageH = probe.offsetHeight;
+    document.body.removeChild(probe);
+    var avail = pageH - 6;
+    var zoom = 1;
+    box.style.zoom = "";
+    for (var i = 0; i < 8; i++) {
+      var h = box.getBoundingClientRect().height;
+      if (h <= avail) break;
+      zoom = zoom * avail / h * 0.99;
+      box.style.zoom = String(zoom);
+    }
+  }
+
   function init() {
+    fitToScreen();
+    window.addEventListener("resize", fitToScreen);
+    window.addEventListener("beforeprint", fitToPage);
+    window.addEventListener("afterprint", fitToScreen);
     buildItemsTable();
     wireAgeInput();
     wireNationalId();
